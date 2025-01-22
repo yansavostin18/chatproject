@@ -62,12 +62,14 @@
             background-color: #cce5ff;
             margin-left: auto;
         }
+        #username-container {
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
 
     <div class="chat-container">
-        <!-- Поле для ввода имени -->
         <div id="username-container">
             <input id="username-input" type="text" placeholder="Введите ваше имя" class="input-box" />
             <button id="set-username" class="send-button">Подтвердить имя</button>
@@ -78,24 +80,51 @@
         <button id="send-button" class="send-button" disabled>Отправить</button>
     </div>
 
+    <!-- Подключаем Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore.js"></script>
+
     <script>
+        // Настройки Firebase (замени на свои из консоли Firebase)
+        const firebaseConfig = {
+  apiKey: "AIzaSyCUovHH_qYwGnoDg5tA7HKBcc22INw4h54",
+  authDomain: "chatapp-8b3ac.firebaseapp.com",
+  projectId: "chatapp-8b3ac",
+  storageBucket: "chatapp-8b3ac.firebasestorage.app",
+  messagingSenderId: "116340098651",
+  appId: "1:116340098651:web:c87a63bc22271dbf90617e",
+  measurementId: "G-PCZCP46Q5P"
+        };
+
+        // Инициализация Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore(app);
+
         const sendButton = document.getElementById('send-button');
         const messageInput = document.getElementById('message-input');
         const chatBox = document.getElementById('chat-box');
         const usernameInput = document.getElementById('username-input');
         const setUsernameButton = document.getElementById('set-username');
-        let username = localStorage.getItem('username') || ''; // Получаем имя из localStorage
+        let username = localStorage.getItem('username') || '';
 
-        // Если имя задано, скрываем поле для ввода имени
         if (username) {
             document.getElementById('username-container').style.display = 'none';
             messageInput.disabled = false;
             sendButton.disabled = false;
-            chatBox.scrollTop = chatBox.scrollHeight;
-            renderChatHistory(); // Загружаем историю чата
+            renderChatHistory();
         }
 
-        // Функция для добавления сообщения в чат
+        setUsernameButton.addEventListener('click', () => {
+            username = usernameInput.value.trim();
+            if (username) {
+                localStorage.setItem('username', username);
+                document.getElementById('username-container').style.display = 'none';
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                renderChatHistory();
+            }
+        });
+
         function addMessage(message, sender) {
             const messageElement = document.createElement('div');
             messageElement.classList.add('message', sender);
@@ -104,53 +133,34 @@
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        // Сохранение истории чата в localStorage
-        function saveChatHistory() {
-            const messages = Array.from(chatBox.getElementsByClassName('message')).map(message => ({
-                text: message.textContent,
-                sender: message.classList.contains('user') ? 'user' : 'friend',
-            }));
-            localStorage.setItem('chatHistory', JSON.stringify(messages));
-        }
-
-        // Отображение истории чата из localStorage
         function renderChatHistory() {
-            const chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
-            chatHistory.forEach(message => {
-                addMessage(message.text, message.sender);
-            });
+            db.collection("messages")
+                .orderBy("timestamp")
+                .onSnapshot((snapshot) => {
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        addMessage(data.message, data.sender);
+                    });
+                });
         }
 
-        // Обработчик нажатия кнопки для подтверждения имени
-        setUsernameButton.addEventListener('click', () => {
-            username = usernameInput.value.trim();
-            if (username) {
-                localStorage.setItem('username', username);
-                document.getElementById('username-container').style.display = 'none';
-                messageInput.disabled = false;
-                sendButton.disabled = false;
-                addMessage(`${username} присоединился к чату`, 'friend');
-                renderChatHistory(); // Загружаем историю чата после присоединения
-            }
-        });
-
-        // Функция для обработки отправки сообщения
         function sendMessage() {
             const message = messageInput.value.trim();
             if (message) {
-                addMessage(`${username}: ${message}`, 'user');
-                saveChatHistory();
-                messageInput.value = '';  // Очищаем поле ввода
+                db.collection("messages").add({
+                    message: `${username}: ${message}`,
+                    sender: 'user',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                messageInput.value = '';
             }
         }
 
-        // Обработчик нажатия кнопки отправки
         sendButton.addEventListener('click', sendMessage);
 
-        // Обработчик нажатия клавиши Enter
         messageInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();  // Предотвращаем новую строку
+                e.preventDefault();
                 sendMessage();
             }
         });

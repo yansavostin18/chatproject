@@ -1,34 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Chat</title>
+    <title>Простой чат</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="chat-container">
-        <div id="chat-window">
-            <div id="messages"></div>
+    <div class="chat-container">
+        <div id="messages" class="messages"></div>
+        <div class="input-container">
+            <input type="text" id="message-input" placeholder="Введите сообщение..." autocomplete="off">
+            <button id="send-button">Отправить</button>
         </div>
-        <div id="input-area">
-            <input type="text" id="message-input" placeholder="Type your message..." />
-            <button id="send-button">Send</button>
-        </div>
-        <div id="options-area">
-            <button id="clear-history-button">Clear Chat History</button>
-        </div>
-    </div>
-
-    <!-- Modal for username -->
-    <div id="username-modal" class="modal">
-        <div class="modal-content">
-            <h2>Enter Your Name</h2>
-            <input type="text" id="username-input" placeholder="Your Name">
-            <button id="save-username-button">Start Chat</button>
+        <div id="username-modal" class="username-modal">
+            <input type="text" id="username-input" placeholder="Введите ваше имя">
+            <button id="save-username-button">Сохранить</button>
         </div>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>

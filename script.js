@@ -1,84 +1,52 @@
-const STORAGE_KEY = 'simple-chat-messages';
-const USERNAME_KEY = 'chat-username';
-const messagesContainer = document.getElementById('messages');
-const messageInput = document.getElementById('message-input');
-const sendButton = document.getElementById('send-button');
-const clearHistoryButton = document.getElementById('clear-history-button');
-const usernameModal = document.getElementById('username-modal');
-const usernameInput = document.getElementById('username-input');
-const saveUsernameButton = document.getElementById('save-username-button');
+document.addEventListener('DOMContentLoaded', () => {
+    const messagesContainer = document.getElementById('messages');
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    const usernameModal = document.getElementById('username-modal');
+    const usernameInput = document.getElementById('username-input');
+    const saveUsernameButton = document.getElementById('save-username-button');
 
-let username = null;
+    let username = null;
+    const socket = new WebSocket('wss://your-app-name.herokuapp.com'); // Укажи ссылку на твой сервер на Heroku
 
-// Load chat history
-function loadMessages() {
-    const savedMessages = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    savedMessages.forEach(({ text, isUser }) => addMessage(text, isUser));
-}
+    // Отправка сообщения через WebSocket
+    sendButton.addEventListener('click', () => {
+        const messageText = messageInput.value.trim();
+        if (messageText) {
+            const message = JSON.stringify({ username, text: messageText });
+            socket.send(message); // Отправляем сообщение на сервер
+            messageInput.value = '';
+        }
+    });
 
-// Save a message to localStorage
-function saveMessage(text, isUser) {
-    const savedMessages = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    savedMessages.push({ text, isUser });
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(savedMessages));
-}
+    // Обработка сообщений от других пользователей
+    socket.addEventListener('message', (event) => {
+        const { username: author, text } = JSON.parse(event.data);
+        addMessage(`${author}: ${text}`, author === username);
+    });
 
-// Add a message to the chat
-function addMessage(text, isUser = true) {
-    const message = document.createElement('div');
-    message.className = isUser ? 'message user-message' : 'message system-message';
-    message.textContent = text;
-    messagesContainer.appendChild(message);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
-
-// Dynamic system responses
-function getSystemResponse(userMessage) {
-    if (userMessage.toLowerCase().includes('hello')) return 'Hi there!';
-    if (userMessage.toLowerCase().includes('how are you')) return 'I am just a chat system, but I am doing well!';
-    return 'This is a default response.';
-}
-
-// Handle sending a message
-sendButton.addEventListener('click', () => {
-    const messageText = messageInput.value.trim();
-    if (messageText) {
-        addMessage(`${username}: ${messageText}`, true);
-        saveMessage(`${username}: ${messageText}`, true);
-        messageInput.value = '';
-
-        const systemResponse = getSystemResponse(messageText);
-        setTimeout(() => {
-            addMessage(systemResponse, false);
-            saveMessage(systemResponse, false);
-        }, 1000);
+    // Добавление сообщения в чат
+    function addMessage(text, isUser) {
+        const message = document.createElement('div');
+        message.className = isUser ? 'message user-message' : 'message other-message';
+        message.textContent = text;
+        messagesContainer.appendChild(message);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight; // Прокрутка вниз
     }
-});
 
-// Clear chat history
-clearHistoryButton.addEventListener('click', () => {
-    localStorage.removeItem(STORAGE_KEY);
-    messagesContainer.innerHTML = '';
-});
+    // Сохранение имени пользователя
+    saveUsernameButton.addEventListener('click', () => {
+        const enteredUsername = usernameInput.value.trim();
+        if (enteredUsername) {
+            username = enteredUsername;
+            usernameModal.style.display = 'none';
+        }
+    });
 
-// Handle username modal
-saveUsernameButton.addEventListener('click', () => {
-    const enteredUsername = usernameInput.value.trim();
-    if (enteredUsername) {
-        localStorage.setItem(USERNAME_KEY, enteredUsername);
-        username = enteredUsername;
-        usernameModal.style.display = 'none';
-    }
-});
-
-// Initialize chat
-function init() {
-    username = localStorage.getItem(USERNAME_KEY);
-    if (!username) {
+    // Инициализация чата
+    function init() {
         usernameModal.style.display = 'flex';
-    } else {
-        usernameModal.style.display = 'none';
     }
-    loadMessages();
-}
-init();
+
+    init();
+});

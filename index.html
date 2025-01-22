@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Chat</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Минимальный стиль для заглушки */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #chat-container {
+            width: 90%;
+            max-width: 400px;
+            background: #fff;
+            border: 2px solid #ffd700; /* Желтая рамка */
+            border-radius: 16px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #chat-window {
+            flex-grow: 1;
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        #messages {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        #input-area {
+            display: flex;
+            border-top: 2px solid #ffd700;
+            padding: 8px;
+            background-color: #fffaf0;
+        }
+
+        #message-input {
+            flex-grow: 1;
+            border: 2px solid #ffd700;
+            border-radius: 8px;
+            padding: 8px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        #send-button {
+            margin-left: 8px;
+            background-color: #ffd700;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        #send-button:hover {
+            background-color: #ffcc00;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="chat-window">
+            <div id="messages">
+                <!-- Сообщения будут появляться здесь -->
+            </div>
+        </div>
+        <div id="input-area">
+            <input type="text" id="message-input" placeholder="Type your message..." />
+            <button id="send-button">Send</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -80,11 +80,12 @@
         <button id="send-button" class="send-button" disabled>Отправить</button>
     </div>
 
-    <!-- Подключаем Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore.js"></script>
+    <!-- Подключаем Firebase SDK для работы с модулями -->
+    <script type="module">
+        // Импортируем Firebase модули
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore.js";
 
-    <script>
         // Настройки Firebase (замени на свои из консоли Firebase)
         const firebaseConfig = {
   apiKey: "AIzaSyCUovHH_qYwGnoDg5tA7HKBcc22INw4h54",
@@ -97,8 +98,8 @@
         };
 
         // Инициализация Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore(app);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
         const sendButton = document.getElementById('send-button');
         const messageInput = document.getElementById('message-input');
@@ -134,23 +135,24 @@
         }
 
         function renderChatHistory() {
-            db.collection("messages")
-                .orderBy("timestamp")
-                .onSnapshot((snapshot) => {
-                    snapshot.forEach(doc => {
-                        const data = doc.data();
-                        addMessage(data.message, data.sender);
-                    });
+            const messagesRef = collection(db, "messages");
+            const q = query(messagesRef, orderBy("timestamp"));
+
+            onSnapshot(q, (snapshot) => {
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    addMessage(data.message, data.sender);
                 });
+            });
         }
 
         function sendMessage() {
             const message = messageInput.value.trim();
             if (message) {
-                db.collection("messages").add({
+                addDoc(collection(db, "messages"), {
                     message: `${username}: ${message}`,
                     sender: 'user',
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    timestamp: serverTimestamp()
                 });
                 messageInput.value = '';
             }

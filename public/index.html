@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Чат</title>
-
-    <!-- Встраиваем CSS в файл HTML -->
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -60,9 +58,6 @@
             max-width: 80%;
             margin-left: 10px;
         }
-        .message.bot {
-            background-color: #d1ffd1;
-        }
         .message.user {
             background-color: #cce5ff;
             margin-left: auto;
@@ -72,16 +67,33 @@
 <body>
 
     <div class="chat-container">
+        <!-- Поле для ввода имени -->
+        <div id="username-container">
+            <input id="username-input" type="text" placeholder="Введите ваше имя" class="input-box" />
+            <button id="set-username" class="send-button">Подтвердить имя</button>
+        </div>
+
         <div class="chat-box" id="chat-box"></div>
-        <textarea id="message-input" class="input-box" placeholder="Введите сообщение..."></textarea>
-        <button id="send-button" class="send-button">Отправить</button>
+        <textarea id="message-input" class="input-box" placeholder="Введите сообщение..." disabled></textarea>
+        <button id="send-button" class="send-button" disabled>Отправить</button>
     </div>
 
-    <!-- Встраиваем JavaScript в файл HTML -->
     <script>
         const sendButton = document.getElementById('send-button');
         const messageInput = document.getElementById('message-input');
         const chatBox = document.getElementById('chat-box');
+        const usernameInput = document.getElementById('username-input');
+        const setUsernameButton = document.getElementById('set-username');
+        let username = localStorage.getItem('username') || ''; // Получаем имя из localStorage
+
+        // Если имя задано, скрываем поле для ввода имени
+        if (username) {
+            document.getElementById('username-container').style.display = 'none';
+            messageInput.disabled = false;
+            sendButton.disabled = false;
+            chatBox.scrollTop = chatBox.scrollHeight;
+            renderChatHistory(); // Загружаем историю чата
+        }
 
         // Функция для добавления сообщения в чат
         function addMessage(message, sender) {
@@ -89,19 +101,46 @@
             messageElement.classList.add('message', sender);
             messageElement.textContent = message;
             chatBox.appendChild(messageElement);
-            chatBox.scrollTop = chatBox.scrollHeight;  // Прокручиваем вниз
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
+
+        // Сохранение истории чата в localStorage
+        function saveChatHistory() {
+            const messages = Array.from(chatBox.getElementsByClassName('message')).map(message => ({
+                text: message.textContent,
+                sender: message.classList.contains('user') ? 'user' : 'friend',
+            }));
+            localStorage.setItem('chatHistory', JSON.stringify(messages));
+        }
+
+        // Отображение истории чата из localStorage
+        function renderChatHistory() {
+            const chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
+            chatHistory.forEach(message => {
+                addMessage(message.text, message.sender);
+            });
+        }
+
+        // Обработчик нажатия кнопки для подтверждения имени
+        setUsernameButton.addEventListener('click', () => {
+            username = usernameInput.value.trim();
+            if (username) {
+                localStorage.setItem('username', username);
+                document.getElementById('username-container').style.display = 'none';
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                addMessage(`${username} присоединился к чату`, 'friend');
+                renderChatHistory(); // Загружаем историю чата после присоединения
+            }
+        });
 
         // Функция для обработки отправки сообщения
         function sendMessage() {
             const message = messageInput.value.trim();
             if (message) {
-                addMessage(message, 'user');
+                addMessage(`${username}: ${message}`, 'user');
+                saveChatHistory();
                 messageInput.value = '';  // Очищаем поле ввода
-                setTimeout(() => {
-                    // Ответ бота
-                    addMessage("Это пример ответа от бота!", 'bot');
-                }, 1000);
             }
         }
 

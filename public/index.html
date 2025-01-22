@@ -138,7 +138,9 @@
             const messagesRef = collection(db, "messages");
             const q = query(messagesRef, orderBy("timestamp"));
 
+            // Реальное обновление чата
             onSnapshot(q, (snapshot) => {
+                chatBox.innerHTML = ''; // Очищаем чат, чтобы избежать дублирования
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     addMessage(data.message, data.sender);

@@ -79,6 +79,7 @@
         <div id="username-container">
             <input id="username-input" type="text" placeholder="Wpisz swoje imię" class="input-box" />
             <button id="set-username" class="set-username">Zatwierdź imię</button>
+            <button id="change-username" class="set-username">Zmień imię</button>
         </div>
 
         <div class="chat-box" id="chat-box"></div>
@@ -114,13 +115,24 @@
         const chatBox = document.getElementById('chat-box');
         const usernameInput = document.getElementById('username-input');
         const setUsernameButton = document.getElementById('set-username');
+        const changeUsernameButton = document.getElementById('change-username');
         let username = localStorage.getItem('username') || '';
 
+        function updateUIForUsername() {
+            if (username) {
+                usernameInput.value = username;
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                deleteButton.disabled = false;
+            } else {
+                messageInput.disabled = true;
+                sendButton.disabled = true;
+                deleteButton.disabled = true;
+            }
+        }
+
         if (username) {
-            document.getElementById('username-container').style.display = 'none';
-            messageInput.disabled = false;
-            sendButton.disabled = false;
-            deleteButton.disabled = false;
+            updateUIForUsername();
             renderChatHistory();
         }
 
@@ -128,12 +140,15 @@
             username = usernameInput.value.trim();
             if (username) {
                 localStorage.setItem('username', username);
-                document.getElementById('username-container').style.display = 'none';
-                messageInput.disabled = false;
-                sendButton.disabled = false;
-                deleteButton.disabled = false;
+                updateUIForUsername();
                 renderChatHistory();
             }
+        });
+
+        changeUsernameButton.addEventListener('click', () => {
+            localStorage.removeItem('username');
+            username = '';
+            updateUIForUsername();
         });
 
         function addMessageToChat(message, sender, user) {
